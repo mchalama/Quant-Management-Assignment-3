@@ -1,0 +1,76 @@
+---
+title: "mchalama_03_Part4"
+author: "ManojKumar Chalamala"
+date: "9/23/2019"
+output: html_document
+---
+
+```{r}
+#install.packages("lpSolveAPI")
+library(lpSolveAPI)
+#help(add.constraint)
+
+### Weigelt Production Problem
+lpdual <- make.lp(9,11)
+
+# Set Objective Function
+set.objfn(lpdual, c(750, 900, 450, 13000, 12000, 5000, 900, 1200, 750, 0, 0))
+
+# Set values for the rows
+set.row(lpdual, 1, c(1, 20, 1, 900, 450), indices = c(1, 4, 7, 10, 11))
+set.row(lpdual, 2, c(1, 15, 1, 900, 450), indices = c(1, 4, 8, 10, 11))
+set.row(lpdual, 3, c(1, 12, 1, 900, 450), indices = c(1, 4, 9, 10, 11))
+set.row(lpdual, 4, c(1, 20, 1, -750), indices = c(2, 5, 7, 10))
+set.row(lpdual, 5, c(1, 15, 1, -750), indices = c(2, 5, 8, 10))
+set.row(lpdual, 6, c(1, 12, 1, -750), indices = c(2, 5, 9, 10))
+set.row(lpdual, 7, c(1, 20, 1, -750), indices = c(3, 6, 7, 11))
+set.row(lpdual, 8, c(1, 15, 1, -750), indices = c(3, 6, 8, 11))
+set.row(lpdual, 9, c(1, 12, 1, -750), indices = c(3, 6, 9, 11))
+
+# Set Right Hand side
+rhs <- c(420, 360, 300, 420, 360, 300, 420, 360, 300)
+set.rhs(lpdual, rhs)
+
+#set Constraint type
+set.constr.type(lpdual, rep(">=", 9), constraints = 1:9)
+
+set.bounds(lpdual, lower = c(-Inf, -Inf), columns = 10:11)
+
+
+# finally, name the decision variables (column) and constraints (rows)
+lp.colnames <- c("X1", "X2", "X3", "X4", "X5", "X6", "X7", "X8", "X9", "X10", "X11")
+lp.rownames <- c("CON1", "CON2", "CON3", "CON4", "CON5", "CON6", "CON7", "CON8", "CON9")
+dimnames(lpdual) <- list(lp.rownames, lp.colnames)
+
+lp.control(lpdual, sense="min")
+
+# view the linear program object to make sure it's correct
+lpdual
+
+# now solve the model
+solve(lpdual)
+# --> A return value of 0 indicates that the model was successfully solved.
+
+#objective function value
+get.objective(lpdual)
+
+#Optimal decision Variable values
+get.variables(lpdual)
+
+#Constraints
+get.constraints(lpdual)
+
+# look at surplus for each constraint
+get.constraints(lpdual) - rhs
+
+
+get.sensitivity.rhs(lpdual)
+
+get.sensitivity.obj(lpdual)
+
+cbind(get.sensitivity.rhs(lpdual)$duals[1:11], get.sensitivity.rhs(lpdual)$dualsfrom[1:11], get.sensitivity.rhs(lpdual)$dualstill[1:11])
+
+cbind(get.sensitivity.rhs(lpdual)$duals[12:20], get.sensitivity.rhs(lpdual)$dualsfrom[12:20], get.sensitivity.rhs(lpdual)$dualstill[12:20])
+
+```
+
